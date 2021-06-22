@@ -1,4 +1,4 @@
-import pydrive
+import pydrive2
 
 def list_dir(drive, dir_id):
     query = {
@@ -9,10 +9,25 @@ def list_dir(drive, dir_id):
     return file_list
 
 def get_dir_reference(dir_path):
-    ...
+    query = {
+        'id': dir_id
+    }
+    d = drive.CreateFile(query)
+    d.FetchMetadata(fetch_all=True)
+    return d
 
-def up_files(file_paths, dir_path):
-    ...
+def up_file(drive, file_path, dir_id):
+    query = {
+        'parents': [{'id':dir_id}]
+    }
+    f = drive.CreateFile(query)
+    f.SetContentFile('README.md')
+    f.Upload()
 
-def check_files_exist(file_paths, dir_path):
+
+def up_files(drive, file_paths, dir_id):
+    for file_path in file_paths:
+        up_file(drive, file_path, dir_id)
+
+def check_files_exist(drive, file_paths, dir_id):
     ...
