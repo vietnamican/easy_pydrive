@@ -7,4 +7,4 @@ drive = get_drive_instance()
 parent_id = "1Bkoka3pDX60O3oqFKv0P85oiN1SmDpSZ"
 
 # check_files_exist(drive, [1], parent_id)
-up_folder(drive, 'folder_a', parent_id, recursive=True)
+up_folder(drive, 'folder_a', parent_id, up_mode=1, recursive=True)
