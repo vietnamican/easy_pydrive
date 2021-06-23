@@ -9,14 +9,6 @@ def list_dir(drive, dir_id):
     file_list = drive.ListFile(query).GetList()
     return file_list
 
-def get_dir_reference(dir_path):
-    query = {
-        'id': dir_id
-    }
-    d = drive.CreateFile(query)
-    d.FetchMetadata(fetch_all=True)
-    return d
-
 def up_file(drive, file_path, dir_id, is_folder=False):
     base_name = os.path.basename(file_path)
     query = {
@@ -35,20 +27,46 @@ def create_new_folder(drive, folder_title, dir_id):
         'mimeType': 'application/vnd.google-apps.folder'
     }
     f = drive.CreateFile(query)
-    f.Upload()
+    exist = check_files_exist(drive, [folder_title], dir_id)[0]
+    if exist:
+        print("Existing a folder with the same name")
+        f = get_reference_by_name(drive, folder_title, dir_id)
+    else:
+        print("Creating a new folder")
+        f.Upload()
+        f.FetchMetadata()
     return f
+
+def get_reference_by_name(drive, file_title, dir_id):
+    exist = check_files_exist(drive, [file_title], dir_id)[0]
+    if not exist:
+        print("Not exist file for given name")
+    else:
+        query = {
+            'supportsAllDrives': True,
+            'q': "'{}' in parents and trashed=false".format(dir_id)
+        }
+        file_list = drive.ListFile(query).GetList()
+        for f in file_list:
+            if f['title'] == file_title:
+                return f
 
 def up_files(drive, file_paths, dir_id):
     for file_path in file_paths:
         up_file(drive, file_path, dir_id)
 
 def check_files_exist(drive, file_paths, dir_id):
-    ...
+    query = {
+        'supportsAllDrives': True,
+        'q': "'{}' in parents and trashed=false".format(dir_id)
+    }
+    file_list = drive.ListFile(query).GetList()
+    file_list_title = [f['title'] for f in file_list]
+    return [True if file_path in file_list_title else False for file_path in file_paths]
 
 def up_folder(drive, folder_path, dir_id):
     folder = create_new_folder(drive, folder_path, dir_id)
-    folder.FetchMetadata()
-    print(folder)
+    # print(folder)
     folder_id = folder.metadata['id']
     file_paths = os.listdir(folder_path)
     file_paths = [os.path.join(folder_path, file_path) for file_path in file_paths]
